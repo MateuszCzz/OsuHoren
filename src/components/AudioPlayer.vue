@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, watchEffect } from "vue";
+import { ref, watchEffect } from "vue";
 import { SongData } from "../types/Types";
 
 const audioUrl = ref<string | null>(null);

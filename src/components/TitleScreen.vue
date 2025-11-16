@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import logo from "../assets/Logo.png";
 import FileSelector from "../components/FileSelector.vue";
 
 const emit = defineEmits(["processFileStream"]);

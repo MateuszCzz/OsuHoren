@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref, nextTick } from "vue";
-import type { SongData } from "../types/Types";
 import LoadFilesWorker from "../workers/LoadFilesWorker?worker";
 
 const emit = defineEmits(["processFileStream"]);
