@@ -4,7 +4,7 @@ import type { SongData } from "./types/Types";
 
 import TitleScreen from "./components/TitleScreen.vue";
 import ShowData from "./components/ShowData.vue";
-import AudioPlayer from "./components/AudioPlayer.vue";
+import AudioController from "./components/AudioController.vue";
 
 const currentSong = ref<SongData | null>(null);
 const songs = ref<SongData[]>([]);
@@ -12,7 +12,7 @@ const status = ref<string>("");
 const showTitleScreen = ref(true);
 const mountTitleScreen = ref(true);
 
-// Handle feedback from worker
+// Handle feedback from file processing worker
 function processFileStream(msg: any) {
   if (msg.error) {
     status.value = `Error: ${msg.message}`;
@@ -55,7 +55,7 @@ function playSong(selectedSong: SongData) {
     </div>
 
     <div v-show="!showTitleScreen">
-      <AudioPlayer v-if="currentSong" :currentSong="currentSong" />
+      <AudioController v-if="currentSong" :currentSong="currentSong" />
       <ShowData :songs="songs" @songChosen="playSong" />
     </div>
   </main>
