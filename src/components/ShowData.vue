@@ -24,11 +24,11 @@ function chooseSong(song: SongData) {
       class="scroller"
       :items="songs"
       :item-size="50"
-      key-field="title"
+      key-field="id"
       v-slot="{ item }"
     >
       <div class="item-display" @click.stop="chooseSong(item)">
-        <p class="title">{{ item.title }}</p>
+        <p class="title">{{ item.id }} - {{ item.title }}</p>
       </div>
     </RecycleScroller>
   </div>
@@ -36,7 +36,7 @@ function chooseSong(song: SongData) {
 
 <style scoped>
 .scroller {
-  height: 400px;
+  height: 280px;
   width: 100%;
   overflow-y: auto;
   background-color: #fcdfdfff;

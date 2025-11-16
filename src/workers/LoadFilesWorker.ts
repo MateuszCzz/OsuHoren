@@ -27,6 +27,8 @@ self.onmessage = async (e) => {
   // main processing:
   let batch: SongData[] = [];
 
+  let idCounter = 0;
+
   for (const osu of unique.values()) {
     const metadata = await parseOsuFile(osu);
 
@@ -42,7 +44,7 @@ self.onmessage = async (e) => {
 
     // look for files with right path
     const basePath = osu.webkitRelativePath.split("/").slice(0, -1).join("/");
-    const audioFile = fileList.find((f) => f.webkitRelativePath ===  `${basePath}/${metadata.audio}`);
+    const audioFile = fileList.find((f) => f.webkitRelativePath === `${basePath}/${metadata.audio}`);
     // audio file wasnt in directory, skip
     if (!audioFile) {
       postMessage({
@@ -54,6 +56,7 @@ self.onmessage = async (e) => {
 
     // add to stack
     batch.push({
+      id: idCounter++,
       path: osu.webkitRelativePath,
       ...metadata,
       audioFile,
