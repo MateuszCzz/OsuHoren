@@ -1,9 +1,6 @@
 # OsuHoren 🎵
 Do you want to listen to all the songs within your osu! app without having to open the game itself?  
-**OsuHoren** is an early build of a music player designed for **osu!** files, built with **Tauri (Rust)** and **Vue.js**.
-
-Want to enjoy all the songs from your **osu!** library without launching the game?
-**OsuHoren** is an early-build of music player for **osu!** files, built with **Tauri (Rust)** and **Vue.js**, letting you listen to your favorite tracks anytime.
+**OsuHoren** is an early build of a music player designed for **osu!** songs, built with **Tauri (Rust)** and **Vue.js** with multiplatform in mind. 
 
 **v0.0.1** – Early build
 
