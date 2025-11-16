@@ -12,22 +12,20 @@ const status = ref<string>("");
 const showTitleScreen = ref(true);
 const mountTitleScreen = ref(true);
 
+// Handle feedback from worker
 function processFileStream(msg: any) {
   if (msg.error) {
-    console.log("error" + msg);
     status.value = `Error: ${msg.message}`;
     return;
   }
 
   if (msg.start) {
     // Hide early but keep mounted
-    console.log("Hide early but keep mounted" + msg);
     if (showTitleScreen.value) showTitleScreen.value = false;
     return;
   }
 
   if (msg.partial) {
-    console.log("partial" + msg);
     // squash array
     songs.value = [...songs.value, ...msg.data];
     return;
@@ -35,7 +33,6 @@ function processFileStream(msg: any) {
 
   if (msg.done) {
     //destroy >:(
-    console.log("destroy" + msg);
     mountTitleScreen.value = false;
     status.value = "Finished processing files.";
   }
@@ -69,4 +66,3 @@ body {
   background: #2c2c2cff;
 }
 </style>
-
