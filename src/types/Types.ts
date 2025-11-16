@@ -12,5 +12,5 @@ export interface SongData {
   setId: string;
   source: string;
 
-  audioFile: File | {};
+  audioFile: File;
 }
