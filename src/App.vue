@@ -55,7 +55,7 @@ function playSong(selectedSong: SongData) {
     </div>
 
     <div v-show="!showTitleScreen">
-      <AudioController v-if="currentSong" :currentSong="currentSong" />
+      <AudioController :songs="songs" :currentSong="currentSong" />
       <ShowData :songs="songs" @songChosen="playSong" />
     </div>
   </main>
