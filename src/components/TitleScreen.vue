@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import FileSelector from "../components/FileSelector.vue";
+import FileController from "../components/FileController.vue";
 
 const emit = defineEmits(["processFileStream"]);
 
@@ -10,7 +10,7 @@ function processFileStream(msg: any) {
 <template>
   <div class="container">
     <img src="../assets/Logo.png" alt="Logo" class="logo" />
-    <FileSelector
+    <FileController
       @processFileStream="processFileStream"
       class="file-selector"
     />
