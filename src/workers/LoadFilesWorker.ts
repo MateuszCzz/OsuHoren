@@ -1,4 +1,4 @@
-import type { SongData } from "../types/Types";
+import type { SongType } from "../types/song-type";
 
 self.onmessage = async (e) => {
   // how many songs per package to send back
@@ -25,7 +25,7 @@ self.onmessage = async (e) => {
   }
 
   // main processing:
-  let batch: SongData[] = [];
+  let batch: SongType[] = [];
 
   let idCounter = 0;
 
@@ -60,7 +60,7 @@ self.onmessage = async (e) => {
       path: osu.webkitRelativePath,
       ...metadata,
       audioFile,
-    } as SongData);
+    } as SongType);
 
     // when big enough send
     if (batch.length >= batchSize) {

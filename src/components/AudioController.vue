@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted, onUnmounted } from "vue";
-import { SongData } from "../types/Types";
+import { SongType } from "../types/song-type";
 
 const props = defineProps<{
-  songs: SongData[];
-  currentSong: SongData | null;
+  songs: SongType[];
+  currentSong: SongType | null;
 }>();
 
 const player = ref<HTMLAudioElement | null>(null);

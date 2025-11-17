@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import type { SongData } from "./types/Types";
+import type { SongType } from "./types/song-type";
 
 import TitleScreen from "./components/TitleScreen.vue";
 import ShowData from "./components/ShowData.vue";
 import AudioController from "./components/AudioController.vue";
 
-const currentSong = ref<SongData | null>(null);
-const songs = ref<SongData[]>([]);
+const currentSong = ref<SongType | null>(null);
+const songs = ref<SongType[]>([]);
 const status = ref<string>("");
 const showTitleScreen = ref(true);
 const mountTitleScreen = ref(true);
@@ -38,7 +38,7 @@ function processFileStream(msg: any) {
   }
 }
 
-function playSong(selectedSong: SongData) {
+function playSong(selectedSong: SongType) {
   currentSong.value = selectedSong;
 }
 </script>

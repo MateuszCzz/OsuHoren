@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { RecycleScroller } from "vue-virtual-scroller";
-import type { SongData } from "../types/Types";
+import type { SongType } from "../types/song-type";
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 
 const props = defineProps<{
-  songs: SongData[];
+  songs: SongType[];
 }>();
 
 const emit = defineEmits<{
-  (e: "songChosen", song: SongData): void;
+  (e: "songChosen", song: SongType): void;
   (e: "fileSelected", file: File | {}): void;
 }>();
 
-function chooseSong(song: SongData) {
+function chooseSong(song: SongType) {
   emit("songChosen", song);
 }
 </script>

@@ -1,4 +1,4 @@
-export interface SongData {
+export interface SongType {
   id: number;
   path: string;
   audio: string;
