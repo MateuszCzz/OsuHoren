@@ -8,61 +8,66 @@ self.onmessage = async (e) => {
   // get files ending with .osu
   const osuFiles = fileList.filter((f) => f.name.endsWith(".osu"));
 
-  // remove diff brackets to rem dubs
+  // no osu files found
+  if (!osuFiles.length) {
+    postMessage({ error: true, fatal: true, message: "No songs detected in folder." });
+    return;
+  }
+
+  // remove diff brackets to remove duplicates 
   const unique = new Map<string, File>();
   for (const f of osuFiles) {
     const base = f.name.replace(/ \[.*\](?=\.osu$)/, "").toLowerCase();
     if (!unique.has(base)) unique.set(base, f);
   }
 
-  // no osu files found
-  if (!unique.size) {
-    postMessage({
-      error: true,
-      message: "No Songs in your song folder detected.",
-    });
-    return;
-  }
+  postMessage({
+    processing: true,
+    unique_amount: unique.size,
+  });
+
+  //TODO: FILTER OUT SAME TITLE AUTOR LENGTH SONGS
 
   // main processing:
   let batch: SongType[] = [];
-
-  let idCounter = 0;
 
   for (const osu of unique.values()) {
     const metadata = await parseOsuFile(osu);
 
     // no audio surce in .osu file, skip
-
     if (!metadata) {
       postMessage({
         error: true,
+        fatal: false,
         message: `No audio source in .osu file: ${osu.name}`,
       });
       continue;
     }
 
-    // look for files with right path
+    // look for coresponding with .osu metadata, audio files
     const basePath = osu.webkitRelativePath.split("/").slice(0, -1).join("/");
     const audioFile = fileList.find((f) => f.webkitRelativePath === `${basePath}/${metadata.audio}`);
+
     // audio file wasnt in directory, skip
     if (!audioFile) {
       postMessage({
         error: true,
+        fatal: false,
         message: `Audio file not found at ${basePath}/${metadata.audio}`,
       });
       continue;
     }
 
-    // add to stack
+    // add to stack 
+    // id handled by song store
     batch.push({
-      id: idCounter++,
+      id: 0,
       path: osu.webkitRelativePath,
       ...metadata,
       audioFile,
     } as SongType);
 
-    // when big enough send
+    // when stack is big enough send over
     if (batch.length >= batchSize) {
       postMessage({ partial: true, data: batch });
       batch = [];
@@ -77,7 +82,7 @@ self.onmessage = async (e) => {
   postMessage({ done: true });
 };
 
-// parse helper
+// helper, parse metadata from .osu file
 async function parseOsuFile(file: File) {
   const text = await file.text();
   const metadata: any = {};
