@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import type { SongType } from "./types/song-type";
 
 import TitleScreen from "./components/TitleScreen.vue";
 import ShowData from "./components/ShowData.vue";
 import AudioController from "./components/AudioController.vue";
 
-const currentSong = ref<SongType | null>(null);
 const status = ref<string>("");
 const showTitleScreen = ref(true);
 const mountTitleScreen = ref(true);
@@ -30,10 +28,6 @@ function processFileStream(msg: any) {
     status.value = "Finished processing files.";
   }
 }
-
-function playSong(selectedSong: SongType) {
-  currentSong.value = selectedSong;
-}
 </script>
 
 <template>
@@ -48,8 +42,8 @@ function playSong(selectedSong: SongType) {
     </div>
 
     <div v-show="!showTitleScreen">
-      <AudioController :currentSong="currentSong" />
-      <ShowData @songChosen="playSong" />
+      <AudioController />
+      <ShowData />
     </div>
   </main>
 </template>

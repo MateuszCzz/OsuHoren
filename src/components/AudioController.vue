@@ -1,24 +1,21 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted, onUnmounted } from "vue";
-import { SongType } from "../types/song-type";
+import { useAudioPlayerStore } from "../stores/audio-player-store";
 
-const props = defineProps<{
-  currentSong: SongType | null;
-}>();
-
+const audioPlayerStore = useAudioPlayerStore();
 const player = ref<HTMLAudioElement | null>(null);
-const volumeBar = ref<HTMLDivElement | null>(null);
-// song current play moment postion
-const seekBar = ref<HTMLDivElement | null>(null);
-const isPlaying = ref(false);
 
+const volumeBar = ref<HTMLDivElement | null>(null);
+const seekBar = ref<HTMLDivElement | null>(null);
+
+const isPlaying = ref(false);
 const songDuration = ref<number>(0);
 const currentDuration = ref<number>(0);
 const playbackSpeed = ref<number>(1);
 const volume = ref<number>(20);
 
-const formattedCurrent = computed(() => formatTime(currentDuration.value));
-const formattedTotal = computed(() => formatTime(songDuration.value));
+const humanCurrentTime = computed(() => formatTime(currentDuration.value));
+const humanTotalTime = computed(() => formatTime(songDuration.value));
 const seekPercent = computed(() =>
   songDuration.value ? (currentDuration.value / songDuration.value) * 100 : 0
 );
@@ -34,6 +31,7 @@ function togglePlay() {
     isPlaying.value = true;
   }
 }
+
 // change playback speed NM -> DT -> HF ->...
 const speeds = [1, 1.5, 0.5];
 function togglePlaybackSpeed() {
@@ -47,8 +45,8 @@ function togglePlaybackSpeed() {
 
 // watch changes of chosen song
 const audioSrc = computed(() => {
-  if (!props.currentSong) return null;
-  return URL.createObjectURL(props.currentSong.audioFile);
+  if (!audioPlayerStore.currentSong) return null;
+  return URL.createObjectURL(audioPlayerStore.currentSong.audioFile);
 });
 
 watch(audioSrc, (newUrl, oldUrl) => {
@@ -157,15 +155,25 @@ onUnmounted(() => {
 <template>
   <div class="player">
     <div class="info">
-      <div class="title">{{ currentSong ? currentSong.title : "Title" }}</div>
+      <div class="title">
+        {{
+          audioPlayerStore.currentSong
+            ? audioPlayerStore.currentSong.title
+            : "Title"
+        }}
+      </div>
       <div class="artist">
-        {{ currentSong ? currentSong.artist : "Artist" }}
+        {{
+          audioPlayerStore.currentSong
+            ? audioPlayerStore.currentSong.artist
+            : "Artist"
+        }}
       </div>
 
       <div class="time">
-        <span>{{ currentDuration ? formattedCurrent : "00:00" }}</span>
+        <span>{{ currentDuration ? humanCurrentTime : "00:00" }}</span>
         <span>/</span>
-        <span>{{ songDuration ? formattedTotal : "00:00" }}</span>
+        <span>{{ songDuration ? humanTotalTime : "00:00" }}</span>
       </div>
     </div>
 
