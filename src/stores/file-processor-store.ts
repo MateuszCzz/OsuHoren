@@ -58,7 +58,7 @@ export const useFileProcessorStore = defineStore("fileProcessor", () => {
             }
 
             // worker started processing
-            if (data.started) {
+            if (data.processing) {
                 console.log("Worker started processing. Unique amount:", data.unique_amount);
                 status.value = "processing";
                 uniqueAmount.value = data.unique_amount;
