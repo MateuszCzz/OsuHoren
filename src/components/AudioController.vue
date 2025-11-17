@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { ref, watch, computed, onMounted, onUnmounted } from "vue";
+import { ref, watch, computed } from "vue";
 import { useAudioPlayerStore } from "../stores/audio-player-store";
+import DragBar from "./DragBar.vue";
 
 const audioPlayerStore = useAudioPlayerStore();
 const player = ref<HTMLAudioElement | null>(null);
-
-const volumeBar = ref<HTMLDivElement | null>(null);
-const seekBar = ref<HTMLDivElement | null>(null);
 
 const isPlaying = ref(false);
 const songDuration = ref<number>(0);
@@ -16,7 +14,11 @@ const volume = ref<number>(20);
 
 const humanCurrentTime = computed(() => formatTime(currentDuration.value));
 const humanTotalTime = computed(() => formatTime(songDuration.value));
-const seekPercent = computed(() =>
+const songTitle = computed(() => {
+  const title = audioPlayerStore.currentSong?.title || "Title";
+  return title.length > 26 ? title.slice(0, 26) + ".." : title;
+});
+const seekProgress = computed(() =>
   songDuration.value ? (currentDuration.value / songDuration.value) * 100 : 0
 );
 
@@ -33,28 +35,29 @@ function togglePlay() {
 }
 
 // change playback speed NM -> DT -> HF ->...
-const speeds = [1, 1.5, 0.5];
+const playbackValues = [1, 1.5, 0.5];
 function togglePlaybackSpeed() {
   if (!player.value) return;
-  const i = speeds.indexOf(playbackSpeed.value);
-  playbackSpeed.value = speeds[(i + 1) % speeds.length];
+  const i = playbackValues.indexOf(playbackSpeed.value);
+  playbackSpeed.value = playbackValues[(i + 1) % playbackValues.length];
   player.value.playbackRate = playbackSpeed.value;
 }
 //TODO: look into pitcher for that sweet NC
 // https://stackoverflow.com/questions/37206304/changing-the-pitch-of-an-audio-element-without-external-libraries
 
-// watch changes of chosen song
-const audioSrc = computed(() => {
-  if (!audioPlayerStore.currentSong) return null;
-  return URL.createObjectURL(audioPlayerStore.currentSong.audioFile);
-});
+// watch changes of chosen song and prep new url while garbaging old
+let oldUrl: string = "";
+watch(
+  () => audioPlayerStore.currentSong,
+  (newSong) => {
+    if (oldUrl) URL.revokeObjectURL(oldUrl);
 
-watch(audioSrc, (newUrl, oldUrl) => {
-  if (oldUrl) URL.revokeObjectURL(oldUrl);
-  if (player.value) player.value.src = newUrl || "";
-  // account for autoplay
-  isPlaying.value = !!newUrl;
-});
+    if (player.value && newSong) {
+      oldUrl = URL.createObjectURL(newSong.audioFile);
+      player.value.src = oldUrl;
+    }
+  }
+);
 
 // handle when audio loads
 function onLoadHandle() {
@@ -66,7 +69,21 @@ function onLoadHandle() {
     player.value.playbackRate = playbackSpeed.value;
     // get song duration
     songDuration.value = player.value.duration;
+    // account for autoplay
+    isPlaying.value = true;
   }
+}
+
+function onVolumeChange(ratio: number) {
+  if (!player.value) return;
+  volume.value = ratio * 100;
+  player.value.volume = ratio;
+}
+
+function onSeekChange(ratio: number) {
+  if (!player.value) return;
+  player.value.currentTime = ratio * songDuration.value;
+  player.value.pause();
 }
 
 // handle when current play time changes / when song plays
@@ -74,52 +91,6 @@ function onTimeUpdateHandle() {
   if (!player.value) return;
 
   currentDuration.value = player.value.currentTime;
-}
-
-// helper functions to handle mouse drag on toggle bars like volume or playfield
-// is user dragging a element
-const dragging = ref<null | DragType>(null);
-
-type DragType = "volume" | "seek";
-
-// mouse down
-function startDrag(e: MouseEvent, t: DragType) {
-  dragging.value = t;
-  handleDrag(e, t);
-}
-
-// mouse over
-// user dragging change values
-function onDrag(e: MouseEvent, t: DragType) {
-  if (dragging.value !== t) return;
-  handleDrag(e, t);
-}
-
-// mouse up
-// remove listeners
-function stopDrag(t: DragType) {
-  if (dragging.value !== t) return;
-  dragging.value = null;
-  if (t === "seek") player.value?.play();
-}
-
-function handleDrag(e: MouseEvent, t: DragType) {
-  if (!player.value) return;
-
-  const bar = t === "volume" ? volumeBar.value : seekBar.value;
-  if (!bar) return;
-
-  const rect = bar.getBoundingClientRect();
-  const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
-  const ratio = x / rect.width;
-
-  if (t === "volume") {
-    player.value.volume = ratio;
-    volume.value = ratio * 100;
-  } else {
-    player.value.currentTime = ratio * songDuration.value;
-    player.value.pause();
-  }
 }
 
 // helper to format time in seconds to human time
@@ -132,35 +103,13 @@ function formatTime(seconds: number) {
     .padStart(2, "0");
   return `${m}:${s}`;
 }
-
-onMounted(() => {
-  if (player.value) {
-    // when song is loaded
-    player.value.addEventListener("loadeddata", onLoadHandle);
-    player.value.addEventListener("timeupdate", onTimeUpdateHandle);
-    // player.value.addEventListener("ended", handleEnded);
-  }
-});
-
-// garbage event listeners
-onUnmounted(() => {
-  if (player.value) {
-    player.value.removeEventListener("loadeddata", onLoadHandle);
-    player.value.removeEventListener("timeupdate", onTimeUpdateHandle);
-    // player.value.removeEventListener("ended", handleEnded);
-  }
-});
 </script>
 
 <template>
   <div class="player">
     <div class="info">
       <div class="title">
-        {{
-          audioPlayerStore.currentSong
-            ? audioPlayerStore.currentSong.title
-            : "Title"
-        }}
+        {{ songTitle }}
       </div>
       <div class="artist">
         {{
@@ -187,33 +136,22 @@ onUnmounted(() => {
       </button>
     </div>
 
-    <div class="volume-section">
-      <span class="volume-label">Volume: {{ Math.floor(volume) }}%</span>
+    <DragBar type="volume" :value="volume" :onChange="onVolumeChange" />
 
-      <div
-        class="volume-bar"
-        @mousedown="startDrag($event, 'volume')"
-        @mousemove="onDrag($event, 'volume')"
-        @mouseup="stopDrag('volume')"
-        ref="volumeBar"
-      >
-        <div class="volume-level" :style="{ width: volume + '%' }" />
-      </div>
-    </div>
+    <DragBar
+      type="seek"
+      :value="seekProgress"
+      :onChange="onSeekChange"
+      :onEnd="() => player?.play()"
+    />
 
-    <div class="seek-section">
-      <div
-        class="seek-bar"
-        @mousedown="startDrag($event, 'seek')"
-        @mousemove="onDrag($event, 'seek')"
-        @mouseup="stopDrag('seek')"
-        ref="seekBar"
-      >
-        <div class="seek-level" :style="{ width: seekPercent + '%' }" />
-      </div>
-    </div>
-
-    <audio ref="player" autoplay loop />
+    <audio
+      ref="player"
+      @loadeddata="onLoadHandle"
+      @timeupdate="onTimeUpdateHandle"
+      autoplay
+      loop
+    />
   </div>
 </template>
 
@@ -262,44 +200,5 @@ onUnmounted(() => {
   border: 1px solid #ccc;
   background: #f4f4f4;
   cursor: pointer;
-}
-
-.volume-section,
-.seek-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.volume-label {
-  font-size: 0.85rem;
-  color: #444;
-}
-
-.volume-bar,
-.seek-bar {
-  user-select: none;
-  width: 100%;
-  height: 10px;
-  background: #ddd;
-  cursor: pointer;
-  position: relative;
-  border-radius: 5px;
-}
-
-.volume-level {
-  user-select: none;
-  pointer-events: none;
-  height: 100%;
-  background: #4caf50;
-  border-radius: 5px;
-}
-
-.seek-level {
-  user-select: none;
-  pointer-events: none;
-  height: 100%;
-  background: chocolate;
-  border-radius: 5px;
 }
 </style>
