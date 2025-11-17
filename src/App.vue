@@ -1,44 +1,24 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed } from "vue";
 
 import TitleScreen from "./components/TitleScreen.vue";
 import ShowData from "./components/ShowData.vue";
 import AudioController from "./components/AudioController.vue";
+import { useFileProcessorStore } from "./stores/file-processor-store";
 
-const status = ref<string>("");
-const showTitleScreen = ref(true);
-const mountTitleScreen = ref(true);
+const fileProcessor = useFileProcessorStore();
 
-// Handle feedback from file processing worker
-function processFileStream(msg: any) {
-  if (msg.error) {
-    status.value = `Error: ${msg.message}`;
-    return;
-  }
-
-  if (msg.start) {
-    // Hide early but keep mounted
-    if (showTitleScreen.value) showTitleScreen.value = false;
-    return;
-  }
-
-  if (msg.done) {
-    //destroy >:(
-    mountTitleScreen.value = false;
-    status.value = "Finished processing files.";
-  }
-}
+const showTitleScreen = computed(
+  () => fileProcessor.status === "pending" || fileProcessor.status === "error"
+);
 </script>
 
 <template>
   <main class="container">
-    <p>{{ status }}</p>
+    <p>{{ fileProcessor.status }}</p>
     <!-- show till file selection, unmount only after worker is done -->
     <div v-show="showTitleScreen">
-      <TitleScreen
-        v-if="mountTitleScreen"
-        @processFileStream="processFileStream"
-      />
+      <TitleScreen v-if="fileProcessor.status !== 'done'" />
     </div>
 
     <div v-show="!showTitleScreen">

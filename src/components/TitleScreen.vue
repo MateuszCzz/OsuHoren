@@ -1,19 +1,10 @@
 <script setup lang="ts">
-import FileController from "../components/FileController.vue";
-
-const emit = defineEmits(["processFileStream"]);
-
-function processFileStream(msg: any) {
-  emit("processFileStream", msg);
-}
+import FileInput from "../components/FileInput.vue";
 </script>
 <template>
   <div class="container">
     <img src="../assets/Logo.png" alt="Logo" class="logo" />
-    <FileController
-      @processFileStream="processFileStream"
-      class="file-selector"
-    />
+    <FileInput class="file-selector" />
   </div>
 </template>
 <style scoped>
