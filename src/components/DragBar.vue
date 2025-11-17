@@ -36,7 +36,7 @@ function stopDrag() {
 
 <template>
   <div class="slider-wrapper">
-    <div v-if="props.type" class="slider-label">{{ props.type }}</div>
+
     <div class="slider-bar" @mousedown="startDrag" ref="bar">
       <div class="slider-level" :style="{ width: value + '%' }" />
     </div>

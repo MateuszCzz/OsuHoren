@@ -107,43 +107,50 @@ function formatTime(seconds: number) {
 
 <template>
   <div class="player">
-    <div class="info">
-      <div class="title">
-        {{ songTitle }}
-      </div>
-      <div class="artist">
-        {{
-          audioPlayerStore.currentSong
-            ? audioPlayerStore.currentSong.artist
-            : "Artist"
-        }}
+    <!-- main part of the music player -->
+    <div class="player-main">
+      <!-- TODO: -->
+      <div class="cover"></div>
+
+      <div class="meta">
+        <div class="meta-title">
+          {{ songTitle }}
+        </div>
+        <div class="meta-artist">
+          {{
+            audioPlayerStore.currentSong
+              ? audioPlayerStore.currentSong.artist
+              : "Artist"
+          }}
+        </div>
       </div>
 
-      <div class="time">
-        <span>{{ currentDuration ? humanCurrentTime : "00:00" }}</span>
-        <span>/</span>
-        <span>{{ songDuration ? humanTotalTime : "00:00" }}</span>
+      <div class="controls-side">
+        <DragBar type="volume" :value="volume" :onChange="onVolumeChange" />
+      </div>
+
+      <div class="controls-primary">
+        <button @click="togglePlaybackSpeed">
+          {{ playbackSpeed == 1 ? "NM" : playbackSpeed == 1.5 ? "DT" : "HF" }}
+        </button>
+        <button @click="togglePlay">
+          {{ isPlaying ? "Pause" : "Play" }}
+        </button>
       </div>
     </div>
-
-    <div class="controls">
-      <button @click="togglePlay">
-        {{ isPlaying ? "Pause" : "Play" }}
-      </button>
-
-      <button @click="togglePlaybackSpeed">
-        {{ playbackSpeed == 1 ? "NM" : playbackSpeed == 1.5 ? "DT" : "HF" }}
-      </button>
+    <div class="seek">
+      <span class="time">{{
+        currentDuration ? humanCurrentTime : "00:00"
+      }}</span>
+      <DragBar
+        class="seek-bar"
+        type="seek"
+        :value="seekProgress"
+        :onChange="onSeekChange"
+        :onEnd="() => player?.play()"
+      />
+      <span class="time"> {{ songDuration ? humanTotalTime : "00:00" }}</span>
     </div>
-
-    <DragBar type="volume" :value="volume" :onChange="onVolumeChange" />
-
-    <DragBar
-      type="seek"
-      :value="seekProgress"
-      :onChange="onSeekChange"
-      :onEnd="() => player?.play()"
-    />
 
     <audio
       ref="player"
@@ -157,48 +164,102 @@ function formatTime(seconds: number) {
 
 <style scoped>
 .player {
-  background-color: beige;
-  padding: 30px;
+  border-top: 3px solid #333333;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  width: 260px;
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  background: #2A2A2A;
   font-family: sans-serif;
 }
 
-.info {
+/* main top section */
+.player-main {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  width: 100%;
+}
+
+.cover {
+  grid-column: 1;
+  width: 5rem;
+  height: 5rem;
+  background: #ddd;
+}
+
+.meta {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  min-width: 25px;
+  grid-column: 2;
+  justify-self: start;
+  box-sizing: border-box;
+  padding: 5px;
 }
 
-.title {
-  font-weight: 600;
-  font-size: 1.1rem;
+.meta-title {
+  font-weight: bold;
 }
 
-.artist {
-  color: #666;
-  font-size: 0.9rem;
+.meta-artist {
+  opacity: 0.7;
 }
 
-.time {
+/* buttons + side controls */
+.controls-primary {
   display: flex;
-  gap: 0.3rem;
-  font-size: 0.85rem;
-  color: #333;
+  gap: 0.5rem;
+  min-width: 40px;
+  grid-column: 2;
+  justify-self: center;
 }
 
-.controls {
+.controls-side {
+  width: 5rem;
+  height: 5rem;
+  grid-column: 3;
+  justify-self: end;
+}
+
+/* seek area */
+.seek {
   display: flex;
+  align-items: center;
   gap: 0.5rem;
 }
 
-.controls button {
-  padding: 0.4rem 0.7rem;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background: #f4f4f4;
-  cursor: pointer;
+.seek-bar {
+  flex: 1;
+  height: 3px;
+  padding-top: 8px;
+}
+
+.seek-bar :deep(.slider-level) {
+  background: black;
+}
+
+.time {
+  width: 50px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 </style>
+
+<!-- Primary (Accent): #FF66CC – energetic pink
+
+Secondary: #FFCC33 – bright yellow for highlights
+
+Background: #1A1A1A – deep dark gray
+
+Surface / Cards: #2A2A2A – slightly lighter dark
+
+Text Primary: #E0E0E0 – off-white for readability
+
+Text Secondary: #AAAAAA – muted gray for secondary info
+
+Interactive / Hover: #FF3399 – vibrant hover effect
+
+Borders / Dividers: #333333 – subtle separation -->

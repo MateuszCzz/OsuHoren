@@ -20,8 +20,10 @@ function chooseSong(song: SongType) {
 </script>
 
 <template>
-  <div class="container">
-    <h3>Results ({{ audioPlayerStore.songStore.songs.length }})</h3>
+  <div class="song-list">
+    <span class="header">
+      Total Songs: {{ audioPlayerStore.songStore.songs.length }}
+    </span>
     <RecycleScroller
       :key="scrollerKey"
       class="scroller"
@@ -30,31 +32,45 @@ function chooseSong(song: SongType) {
       key-field="id"
       v-slot="{ item }"
     >
-      <div class="item-display" @click.stop="chooseSong(item)">
-        <p class="title">{{ item.id }} - {{ item.title }}</p>
+      <div class="song-item" @click.stop="chooseSong(item)">
+        <p class="song-title">{{ item.id }} - {{ item.title }}</p>
       </div>
     </RecycleScroller>
   </div>
 </template>
 
 <style scoped>
-.scroller {
-  height: 230px;
-  width: 100%;
-  overflow-y: auto;
-  background-color: #fcdfdfff;
+.song-list {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-.item-display {
+.header {
+  padding: 4px 0;
+  text-align: center;
+  font-weight: bold;
+}
+
+.scroller {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-color: rgb(60, 60, 60) rgb(30, 30, 30);
+  scrollbar-width: thin;
+}
+
+.song-item {
   height: 50px;
   padding: 0 12px;
-  align-items: center;
-  background-color: #9ad49cff;
-  overflow-y: hidden;
   display: flex;
+  align-items: center;
+  cursor: pointer;
 }
-.itemDisplay p {
+
+.song-title {
   margin: 0;
-  padding: 0 12px;
+  padding: 0;
+  white-space: nowrap;
+  overflow: hidden;
 }
 </style>
