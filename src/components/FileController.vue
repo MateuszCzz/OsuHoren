@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import LoadFilesWorker from "../workers/LoadFilesWorker?worker";
+import { useSongStore } from "../stores/song-store";
 
 const emit = defineEmits(["processFileStream"]);
-
+const songStore = useSongStore();
 const worker = new LoadFilesWorker();
 
 //handle worker output and kill it when useless
 worker.onmessage = (e) => {
   emit("processFileStream", e.data);
-
+  if (e.data.partial) {
+    songStore.addSongs(e.data.data);
+  }
   if (e.data.done) {
     worker.terminate();
   }
@@ -46,5 +49,11 @@ function handleFileSelect(e: Event) {
 </script>
 
 <template>
-  <input class="file-input" type="file" webkitdirectory multiple @change="handleFileSelect" />
+  <input
+    class="file-input"
+    type="file"
+    webkitdirectory
+    multiple
+    @change="handleFileSelect"
+  />
 </template>

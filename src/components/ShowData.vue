@@ -1,11 +1,18 @@
 <script setup lang="ts">
 import { RecycleScroller } from "vue-virtual-scroller";
 import type { SongType } from "../types/song-type";
-import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
+import { useSongStore } from "../stores/song-store";
+import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
+import { ref, watch } from "vue";
 
-const props = defineProps<{
-  songs: SongType[];
-}>();
+const songStore = useSongStore();
+
+//TODO:FIND BETTER SOLUTION THAN THIS RERENDER HACK FOR RENDER ISSUE PINIA+SCROLLER
+// force render of scrollr by changing key
+const scrollerKey = ref<number>(0);
+watch(songStore.songs, () => {
+  scrollerKey.value++;
+});
 
 const emit = defineEmits<{
   (e: "songChosen", song: SongType): void;
@@ -19,10 +26,11 @@ function chooseSong(song: SongType) {
 
 <template>
   <div class="container">
-    <h3>Results ({{ props.songs.length }})</h3>
+    <h3>Results ({{ songStore.songs.length }})</h3>
     <RecycleScroller
+      :key="scrollerKey"
       class="scroller"
-      :items="songs"
+      :items="songStore.songs"
       :item-size="50"
       key-field="id"
       v-slot="{ item }"

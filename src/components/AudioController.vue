@@ -3,7 +3,6 @@ import { ref, watch, computed, onMounted, onUnmounted } from "vue";
 import { SongType } from "../types/song-type";
 
 const props = defineProps<{
-  songs: SongType[];
   currentSong: SongType | null;
 }>();
 

@@ -7,7 +7,6 @@ import ShowData from "./components/ShowData.vue";
 import AudioController from "./components/AudioController.vue";
 
 const currentSong = ref<SongType | null>(null);
-const songs = ref<SongType[]>([]);
 const status = ref<string>("");
 const showTitleScreen = ref(true);
 const mountTitleScreen = ref(true);
@@ -25,12 +24,6 @@ function processFileStream(msg: any) {
     return;
   }
 
-  if (msg.partial) {
-    // squash array
-    songs.value = [...songs.value, ...msg.data];
-    return;
-  }
-
   if (msg.done) {
     //destroy >:(
     mountTitleScreen.value = false;
@@ -45,18 +38,18 @@ function playSong(selectedSong: SongType) {
 
 <template>
   <main class="container">
+    <p>{{ status }}</p>
     <!-- show till file selection, unmount only after worker is done -->
     <div v-show="showTitleScreen">
       <TitleScreen
         v-if="mountTitleScreen"
         @processFileStream="processFileStream"
       />
-      <p>{{ status }}</p>
     </div>
 
     <div v-show="!showTitleScreen">
-      <AudioController :songs="songs" :currentSong="currentSong" />
-      <ShowData :songs="songs" @songChosen="playSong" />
+      <AudioController :currentSong="currentSong" />
+      <ShowData @songChosen="playSong" />
     </div>
   </main>
 </template>
