@@ -9,7 +9,7 @@ import { useFileProcessorStore } from "./stores/file-processor-store";
 const fileProcessor = useFileProcessorStore();
 
 const showTitleScreen = computed(
-  () => fileProcessor.status === "pending" || fileProcessor.status === "error"
+  () => fileProcessor.status != "Done" && fileProcessor.status != "Processing"
 );
 </script>
 
@@ -21,17 +21,15 @@ const showTitleScreen = computed(
     </div>
 
     <div class="main-content-container" v-else>
-      <!-- status bar till worker is working
-         
-         -->
-      <div class="status-bar" v-if="fileProcessor.status !== 'done'">
+      <!-- status bar till worker is working -->
+      <div class="status-bar" v-if="fileProcessor.status != 'Done'">
         <p>{{ fileProcessor.status }}</p>
-        <p v-if="fileProcessor.status === 'processing'">
-          {{ fileProcessor.doneAmount }} / {{ fileProcessor.uniqueAmount }}
+        <p v-if="fileProcessor.status == 'Processing'">
+          {{ fileProcessor.doneAmount }} / {{ fileProcessor.totalAmount }}
         </p>
       </div>
 
-      <!-- remaining space for song list -->
+      <!-- song list -->
       <div class="data-show">
         <ShowData />
       </div>

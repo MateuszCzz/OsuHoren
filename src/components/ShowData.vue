@@ -33,7 +33,7 @@ function chooseSong(song: SongType) {
       v-slot="{ item }"
     >
       <div class="song-item" @click.stop="chooseSong(item)">
-        <p class="song-title">{{ item.id }} - {{ item.title }}</p>
+        <p class="song-title">{{ item.id }} - {{ item.title_ascii }}</p>
       </div>
     </RecycleScroller>
   </div>

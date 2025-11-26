@@ -15,7 +15,7 @@ const volume = ref<number>(20);
 const humanCurrentTime = computed(() => formatTime(currentDuration.value));
 const humanTotalTime = computed(() => formatTime(songDuration.value));
 const songTitle = computed(() => {
-  const title = audioPlayerStore.currentSong?.title || "Title";
+  const title = audioPlayerStore.currentSong?.title_ascii || "Title";
   return title.length > 26 ? title.slice(0, 26) + ".." : title;
 });
 const seekProgress = computed(() =>
@@ -47,17 +47,17 @@ function togglePlaybackSpeed() {
 
 // watch changes of chosen song and prep new url while garbaging old
 let oldUrl: string = "";
-watch(
-  () => audioPlayerStore.currentSong,
-  (newSong) => {
-    if (oldUrl) URL.revokeObjectURL(oldUrl);
+// watch(
+//   () => audioPlayerStore.currentSong,
+//   (newSong) => {
+//     if (oldUrl) URL.revokeObjectURL(oldUrl);
 
-    if (player.value && newSong) {
-      oldUrl = URL.createObjectURL(newSong.audioFile);
-      player.value.src = oldUrl;
-    }
-  }
-);
+//     if (player.value && newSong) {
+//       oldUrl = URL.createObjectURL(newSong.audioFile);
+//       player.value.src = oldUrl;
+//     }
+//   }
+// );
 
 // handle when audio loads
 function onLoadHandle() {
@@ -119,7 +119,7 @@ function formatTime(seconds: number) {
         <div class="meta-artist">
           {{
             audioPlayerStore.currentSong
-              ? audioPlayerStore.currentSong.artist
+              ? audioPlayerStore.currentSong.artist_ascii
               : "Artist"
           }}
         </div>
@@ -171,7 +171,7 @@ function formatTime(seconds: number) {
   width: 100%;
   padding: 10px;
   box-sizing: border-box;
-  background: #2A2A2A;
+  background: #2a2a2a;
   font-family: sans-serif;
 }
 

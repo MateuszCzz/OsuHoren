@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import FileInput from "../components/FileInput.vue";
-import { useFileProcessorStore } from "../stores/file-processor-store";
-
-const fileProcessor = useFileProcessorStore();
 </script>
 <template>
   <div class="container">
     <img src="../assets/Logo.png" alt="Logo" class="logo" />
     <FileInput class="file-selector" />
-    <p>{{ fileProcessor.status }}</p>
+    <p>
+      "Please select your osu.db file found in your osu! standard directory."
+    </p>
   </div>
 </template>
 <style scoped>
