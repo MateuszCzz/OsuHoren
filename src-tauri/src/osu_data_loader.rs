@@ -27,6 +27,8 @@ pub enum Status {
 
 #[derive(Clone, Serialize)]
 pub struct SongData {
+    id: u32,
+    //consider new id shareable
     artist_ascii: Option<String>,
     artist_unicode: Option<String>,
     title_ascii: Option<String>,
@@ -257,7 +259,8 @@ async fn songs_processor_worker(
     // set for holding processed songs names
     let mut done_songs: HashSet<String> = HashSet::new();
     let mut songs_batch: Vec<SongData> = Vec::with_capacity(SONGS_PROCESS_WORKER_BATCH_SIZE);
-
+    let mut songs_count: u32 = 0;
+    
     // iter over songs in osu!db
     for beatmap in osu_db.beatmaps.iter() {
         // check if given song already processed
@@ -300,6 +303,7 @@ async fn songs_processor_worker(
 
         // prep whole song
         let song = SongData {
+            id: songs_count,
             artist_ascii: beatmap.artist_ascii.clone(),
             artist_unicode: beatmap.artist_unicode.clone(),
             title_ascii: beatmap.title_ascii.clone(),
@@ -315,6 +319,7 @@ async fn songs_processor_worker(
 
         // add song to batch
         songs_batch.push(song);
+        songs_count += 1;
 
         // send batch if reached size
         if songs_batch.len() >= SONGS_PROCESS_WORKER_BATCH_SIZE {
