@@ -1,11 +1,11 @@
 use chrono::{DateTime, Utc};
 use futures::{
     channel::mpsc::{self, Sender},
-    StreamExt,
+    stream, SinkExt, StreamExt,
 };
 use osynic_osudb::entity::osu::osudb::OsuDB;
 use serde::Serialize;
-use std::{fs, path::PathBuf};
+use std::{collections::HashSet, fs, path::PathBuf};
 use tauri::{async_runtime, AppHandle, Emitter};
 use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 
@@ -243,6 +243,9 @@ pub async fn setup_osu_data(app: AppHandle) {
         },
     )
     .unwrap();
+
+    // save to global variable
+    // songs_processed;
 }
 
 // read on Arc for cheap cloning
@@ -251,5 +254,79 @@ async fn songs_processor_worker(
     osu_db: OsuDB,
     mut sender: Sender<SongData>,
 ) {
+    // set for holding processed songs names
+    let mut done_songs: HashSet<String> = HashSet::new();
+    let mut songs_batch: Vec<SongData> = Vec::with_capacity(SONGS_PROCESS_WORKER_BATCH_SIZE);
+
+    // iter over songs in osu!db
+    for beatmap in osu_db.beatmaps.iter() {
+        // check if given song already processed
+        let song_id = format!(
+            "{} == {}",
+            beatmap.artist_ascii.as_deref().unwrap_or("artist unknown"),
+            beatmap.title_ascii.as_deref().unwrap_or("title unknown")
+        );
+
+        if done_songs.contains(&song_id) {
+            // skip done already
+            continue;
+        }
+
+        // prep folder or skip
+        let folder = match beatmap.folder_name.as_ref() {
+            Some(v) => v,
+            None => {
+                continue;
+            }
+        };
+
+        // prep audio or skip
+        let audio = match beatmap.audio.as_ref() {
+            Some(v) => v,
+            None => {
+                continue;
+            }
+        };
+
+        // prep full audio file path
+        let audio_file_path = songs_dir_path.join(folder).join(audio);
+
+        // look for audio file
+        if fs::metadata(&audio_file_path).is_err() {
+            continue;
+        }
+
+        done_songs.insert(song_id.clone());
+
+        // prep whole song
+        let song = SongData {
+            artist_ascii: beatmap.artist_ascii.clone(),
+            artist_unicode: beatmap.artist_unicode.clone(),
+            title_ascii: beatmap.title_ascii.clone(),
+            title_unicode: beatmap.title_unicode.clone(),
+            creator: beatmap.creator.clone(),
+            ranking_status: Some(beatmap.status.raw()),
+            length: Some(beatmap.total_time.clone()),
+            mode: Some(beatmap.mode.raw()),
+            song_source: beatmap.song_source.clone(),
+            tags: beatmap.tags.clone(),
+            last_modified: Some(beatmap.last_modified),
+        };
+
+        // add song to batch
+        songs_batch.push(song);
+
+        // send batch if reached size
+        if songs_batch.len() >= SONGS_PROCESS_WORKER_BATCH_SIZE {
+            // send results from batch while draining
+            let mut songs_stream = stream::iter(songs_batch.drain(..).map(Ok));
+            sender.send_all(&mut songs_stream).await.unwrap();
+        }
+    }
+    // send leftover songs
+    let mut songs_stream = stream::iter(songs_batch.drain(..).map(Ok));
+    sender.send_all(&mut songs_stream).await.unwrap();
+
+    // close channel after complete
     sender.disconnect();
 }
